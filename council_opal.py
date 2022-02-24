@@ -46,7 +46,7 @@ for address in re_count_df['address']:
 re_address_faction = pd.concat([re_count_df, pd.DataFrame(re_faction_list)], axis = 1).rename(columns={0:'faction'})
 
 st.title('RANDOMEARTH SALES')
-st.dataframe(re_since_start)
+st.dataframe(re_since_start[['BLOCK_TIMESTAMP', 'NFT_LUNA_PRICE', 'TOKEN_ID', 'TX_ID']])
 
 
 kw_dust_sales = pd.read_json('https://api.flipsidecrypto.com/api/v2/queries/555a8db1-8640-416e-9c5b-1c4c7a6eca77/data/latest')
@@ -76,7 +76,7 @@ for address in kw_count_df['address']:
 kw_address_faction = pd.concat([kw_count_df, pd.DataFrame(kw_faction_list)], axis = 1).rename(columns={0:'faction'})
 
 st.title('KNOWHERE SALES')
-st.dataframe(kw_since_start)
+st.dataframe(kw_since_start[['BLOCK_TIMESTAMP', 'LUNA_PRICE', 'TOKEN_ID', 'TX_ID']])
 
 
 la_dust_sales = pd.read_json('https://api.flipsidecrypto.com/api/v2/queries/26121f5b-8ea0-4f03-a9c2-937254196fdc/data/latest')
@@ -104,15 +104,37 @@ for address in la_count_df['address']:
 la_address_faction = pd.concat([la_count_df, pd.DataFrame(la_faction_list)], axis = 1).rename(columns={0:'faction'})
 
 st.title('LUART SALES')
-st.dataframe(la_since_start)
+st.dataframe(la_since_start[['BLOCK_TIMESTAMP', 'LUNA_PRICE', 'TOKEN_ID', 'TX_ID']])
 
 
 total_df = pd.concat([la_address_faction, re_address_faction, kw_address_faction]).groupby(['address', 'faction']).sum().reset_index()
 total_df.rename(columns = {'TOKEN_ID':'Count of NFTs purchased'}, inplace=True)
+total_df.loc[total_df['address'] == 'terra1eek0ymmhyzja60830xhzm7k7jkrk99a60q2z2t', 'address'] = 'RandomEarth' #use this method because loc
+total_df.loc[total_df['address'] == 'terra1fj44gmt0rtphu623zxge7u3t85qy0jg6p5ucnk', 'address'] = 'LuArt' #use this method because loc
+total_df.loc[total_df['address'] == 'terra12v8vrgntasf37xpj282szqpdyad7dgmkgnq60j', 'address'] = 'Knowhere' #use this method because loc
 
+market_counts = 0
+if len(total_df[total_df['address'] == 'Knowhere']) > 0:
+    market_counts += 1
+if len(total_df[total_df['address'] == 'RandomEarth']) > 0:
+    market_counts += 1
+if len(total_df[total_df['address'] == 'LuArt']) > 0:
+    market_counts += 1
+
+try: 
+    knowhere_listing = int(total_df[total_df['address'] == 'Knowhere']['Count of NFTs purchased'])
+except:
+    knowhere_listing = 0   
+
+st.markdown("""---""")
 st.title('ALL PURCHASES PER ADDRESS')
 st.dataframe(total_df)
-st.markdown(f"### There have been a total of {len(total_df)} unique addresses that have purchased Dust with Opal since the start of the Faction Wars")
+st.markdown(f"### There have been a total of {len(total_df) - market_counts} unique addresses that have purchased Dust with Opal since the start of the Faction Wars")
 st.markdown(f"### There have been a total of {sum(total_df['Count of NFTs purchased'])} NFTs purchased")
+st.markdown(f"### There have been {int(total_df[total_df['address'] == 'RandomEarth']['Count of NFTs purchased'])} NFTs relisted on RandomEarth")
+st.markdown(f"### There have been {int(total_df[total_df['address'] == 'LuArt']['Count of NFTs purchased'])} NFTs relisted on LuArt")
+st.markdown(f"### There have been {knowhere_listing} NFTs relisted on Knowhere")
+
+
 
     
